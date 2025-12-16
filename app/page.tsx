@@ -115,7 +115,7 @@ export default function Home() {
           <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>
             📝 Todo CRUD App
           </h1>
-          <p>Next.js + Vercel Postgres</p>
+          <p>Next.js + Vercel Supabase</p>
         </div>
 
         <div style={{ 
