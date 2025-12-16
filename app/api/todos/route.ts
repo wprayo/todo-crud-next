@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { query } from '@/lib/db';
 
 // GET - Ambil semua todos
 export async function GET() {
   try {
-    const { data, error } = await supabase
-      .from('Todo')
-      .select('*')
-      .order('createdAt', { ascending: false });
-
-    if (error) {
-      console.error('Supabase GET error:', error);
-      throw error;
-    }
-
-    return NextResponse.json(data || []);
+    const result = await query(
+      'SELECT * FROM "Todo" ORDER BY "createdAt" DESC'
+    );
+    
+    return NextResponse.json(result.rows);
   } catch (error) {
     console.error('GET Error:', error);
     return NextResponse.json(
@@ -39,23 +33,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from('Todo')
-      .insert([
-        { 
-          title: title.trim(),
-          done: false 
-        }
-      ])
-      .select()
-      .single();
+    const result = await query(
+      'INSERT INTO "Todo" ("title", "done", "createdAt") VALUES ($1, false, NOW()) RETURNING *',
+      [title.trim()]
+    );
 
-    if (error) {
-      console.error('Supabase POST error:', error);
-      throw error;
-    }
-
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
     console.error('POST Error:', error);
     return NextResponse.json(
@@ -80,26 +63,19 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from('Todo')
-      .update({ done })
-      .eq('id', id)
-      .select()
-      .single();
+    const result = await query(
+      'UPDATE "Todo" SET "done" = $1 WHERE "id" = $2 RETURNING *',
+      [done, id]
+    );
 
-    if (error) {
-      console.error('Supabase PUT error:', error);
-      throw error;
-    }
-
-    if (!data) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: 'Todo not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error('PUT Error:', error);
     return NextResponse.json(
@@ -124,19 +100,12 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from('Todo')
-      .delete()
-      .eq('id', id)
-      .select()
-      .single();
+    const result = await query(
+      'DELETE FROM "Todo" WHERE "id" = $1 RETURNING *',
+      [id]
+    );
 
-    if (error) {
-      console.error('Supabase DELETE error:', error);
-      throw error;
-    }
-
-    if (!data) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: 'Todo not found' },
         { status: 404 }
