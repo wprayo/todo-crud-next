@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 
 // Create connection pool untuk Supabase
 const pool = new Pool({
-  connectionString: process.env.SUPABASE_URL,
+  connectionString: process.env.ANJJ,
   ssl: {
     rejectUnauthorized: false
   },
